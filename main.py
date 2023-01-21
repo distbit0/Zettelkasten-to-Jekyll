@@ -87,6 +87,7 @@ def main():
 
         new_filename = "{}-{}".format(date, filename.replace(postPostfix, "")).replace(" ", "-")
         new_file_path = os.path.join(blog_folder, new_filename)
+        print("copied", file_path, "to", new_file_path)
         shutil.copy(file_path, new_file_path)
 
 
