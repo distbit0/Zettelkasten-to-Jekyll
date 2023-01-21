@@ -1,0 +1,32 @@
+Write a python script which does the following: The goal is to automatically upload certain .md files (which I indicate by adding "blog-" to their name) in my personal notes folder to my jekyll blog.
+It should find these files in my personal notes folder based on having "blog-" at beginning of their name, add the necessary front matter (if they do not already contain it) and then copy them to my blog folder.
+When it copies a file it should auto rename it to remove the "blog-" from the file name and instead add the date to the filename, as jekyll requires e.g. 2022-09-05-name-of-blog-post.
+
+So if the original filename was called blog-How-to-develop-an-app, the file it is copied to in my blogs folder should be called 2022-09-05-How-to-develop-an-app assuming that 2022-09-05 is the current date.
+The date should either be the current date, unless the date is already included in the front-matter. e.g. as date: 2022-09-05 00:00.
+
+The front matter for a fiel should only be created if it doesn't already exist at the top of the original file, and when it is created it should be saved to the original file as well as the destination file in the blogs folder.
+ 
+An example of valid frontmatter is:
+```
+title: "Capital efficiency of futures and IRS contracts"
+layout: post
+date: 2022-09-05 00:00
+headerImage: false
+category: blog
+author: distbit
+description: Analysis of collateral required by IRS contracts
+``` 
+
+The only front-matter values which should change between blog posts are:
+title (should be derived from the name of the original file)
+date (should be the current date)
+description (can be blank)
+
+
+The script should work as follows:
+- finds all files in a folder (at any nesting depth) which have filenames which beging with "blog-"
+- for each of these files, check if they already have valid front matter (using the python-frontmatter module)
+  - if it does have valid front matter, extract the date from the front matter and copy the file to the destination blog post folder
+  - while being copied it should be renamed by replacing "blog-" with the date (extracted from the frontmatter) formatted as described above
+- if the frontmatter did not exist in the file, generate valid front matter according to the example above and add it to the source blog file, then copy it as described above using the date which was used when creating the front matter
