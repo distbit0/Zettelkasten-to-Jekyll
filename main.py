@@ -4,6 +4,9 @@ from datetime import datetime
 import shutil
 import utils
 from pathlib import Path
+import os
+import glob
+
 
 
 # path of the folder containing the notes
@@ -69,6 +72,9 @@ articleUrl: {}
         fileToEdit.write(frontMatterText + fileContents)
 
 def main():
+    files = glob.glob(blog_folder + '/*')
+    for f in files:
+        os.remove(f)
     # find all files in the notes folder
     for file_path in Path(notes_folder).rglob('*' + postPostfix + ".md"):
         file_path = str(file_path)
