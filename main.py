@@ -44,11 +44,11 @@ def remove_frontmatter(file_name):
 
 
 # function to add front matter to a file
-def add_frontmatter(file_path):
+def add_frontmatter(file_path, date=None, description=""):
     filename = file_path.split("/")[-1]
     # get the current date
     yesterday = datetime.now() - timedelta(1)
-    date = yesterday.strftime("%Y-%m-%d")
+    date = yesterday.strftime("%Y-%m-%d") if date is None else date
     # get the title from the file name
     title = (
         os.path.basename(file_path)
@@ -56,6 +56,7 @@ def add_frontmatter(file_path):
         .replace("-", " ")
         .replace(".md", "")
     )
+    title = title.capitalize()
     articleurl = utils.getConfig()["blogUrl"] + "/" + title.replace(" ", "-")
 
     # create front matter
@@ -66,12 +67,12 @@ date: {} 00:00
 headerImage: false
 category: blog
 author: {}
-description:
+description: {}
 articleUrl: {}
 ---
 
 """.format(
-        title, date, utils.getConfig()["author"], articleurl
+        title, date, utils.getConfig()["author"], description, articleurl
     )
     # add front matter to the file
 
@@ -91,11 +92,14 @@ def main():
         if has_valid_frontmatter(file_path):
             # extract the date from the front matter
             post = frontmatter.load(file_path)
+            description = post["description"]
             date = (
                 datetime.strptime(post["date"], "%Y-%m-%d  %H:%M")
                 .date()
                 .strftime("%Y-%m-%d")
             )
+            remove_frontmatter(file_path)
+            add_frontmatter(file_path, date=date, description=description)
         else:
             print("not valid frontmatter")
             # add front matter to the file
