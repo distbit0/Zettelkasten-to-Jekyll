@@ -33,7 +33,6 @@ def remove_frontmatter(file_name):
         post = frontmatter.load(file_name)
         # Get the content of the file
         content = post.content
-        print(content)
         # Overwrite the file with the content only
         with open(file_name, "w") as f:
             f.write(content)
@@ -56,7 +55,7 @@ def add_frontmatter(file_path, date=None, description=""):
         .replace("-", " ")
         .replace(".md", "")
     )
-    title = title.capitalize()
+    title = title[0].upper() + title[1:]
     articleurl = utils.getConfig()["blogUrl"] + "/" + title.replace(" ", "-")
 
     # create front matter
@@ -92,7 +91,7 @@ def main():
         if has_valid_frontmatter(file_path):
             # extract the date from the front matter
             post = frontmatter.load(file_path)
-            description = post["description"]
+            description = post["description"] if post["description"] else ""
             date = (
                 datetime.strptime(post["date"], "%Y-%m-%d  %H:%M")
                 .date()
@@ -120,4 +119,5 @@ def main():
 if __name__ == "__main__":
     gitAutoPath = utils.getConfig()["gitAutoPath"]
     main()
-    os.system(gitAutoPath + " -d " + blog_folder + " -o -p")
+    gitFolder = "/".join(blog_folder.split("/")[:-1])
+    os.system(gitAutoPath + " -d " + gitFolder + " -o -p")
