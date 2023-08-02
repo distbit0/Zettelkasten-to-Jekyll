@@ -27,23 +27,8 @@ def has_valid_frontmatter(file_path):
         return False
 
 
-def remove_frontmatter(file_name):
-    try:
-        # Load the file
-        post = frontmatter.load(file_name)
-        # Get the content of the file
-        content = post.content
-        # Overwrite the file with the content only
-        with open(file_name, "w") as f:
-            f.write(content)
-
-    except frontmatter.exceptions.FrontMatterError:
-        # If the file does not have front matter, do nothing
-        pass
-
-
 # function to add front matter to a file
-def add_frontmatter(file_path, date=None, description=""):
+def add_frontmatter(file_path, date=None, description="", tag=[""]):
     filename = file_path.split("/")[-1]
     # get the current date
     yesterday = datetime.now() - timedelta(1)
@@ -58,26 +43,31 @@ def add_frontmatter(file_path, date=None, description=""):
     title = title[0].upper() + title[1:]
     articleurl = utils.getConfig()["blogUrl"] + "/" + title.replace(" ", "-")
 
-    # create front matter
-    frontMatterText = """---
-title: "{}"
-layout: post
-date: {} 00:00
-headerImage: false
-category: blog
-author: {}
-description: {}
-articleUrl: {}
----
+    post = frontmatter.loads("")
 
-""".format(
-        title, date, utils.getConfig()["author"], description, articleurl
-    )
+    frontMatterObject = {
+        "title": title,
+        "layout": "post",
+        "date": date + " 00:00",
+        "headerImage": False,
+        "category": "blog",
+        "author": utils.getConfig()["author"],
+        "description": description,
+        "articleUrl": articleurl,
+        "tag": tag,
+    }
+
+    for key, value in frontMatterObject.items():
+        post[key] = value
+
+    # create front matter
+    frontMatterText = frontmatter.dumps(post)
     # add front matter to the file
 
-    fileContents = open(file_path).read()
+    fileContents = frontmatter.load(file_path).content
+
     with open(file_path, "w") as fileToEdit:
-        fileToEdit.write(frontMatterText + fileContents)
+        fileToEdit.write(frontMatterText + "\n\n" + fileContents)
 
 
 def main():
@@ -91,18 +81,17 @@ def main():
         if has_valid_frontmatter(file_path):
             # extract the date from the front matter
             post = frontmatter.load(file_path)
-            description = post["description"] if post["description"] else ""
+            description = post["description"] if "description" in post else ""
+            tag = post["tag"] if "tag" in post else [""]
             date = (
                 datetime.strptime(post["date"], "%Y-%m-%d  %H:%M")
                 .date()
                 .strftime("%Y-%m-%d")
             )
-            remove_frontmatter(file_path)
-            add_frontmatter(file_path, date=date, description=description)
+            add_frontmatter(file_path, date=date, description=description, tag=tag)
         else:
             print("not valid frontmatter")
             # add front matter to the file
-            remove_frontmatter(file_path)
             add_frontmatter(file_path)
             yesterday = datetime.now() - timedelta(1)
             date = yesterday.strftime("%Y-%m-%d")
