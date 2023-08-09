@@ -6,6 +6,7 @@ import utils
 from pathlib import Path
 import os
 import glob
+import re
 
 
 # path of the folder containing the notes
@@ -13,6 +14,7 @@ notes_folder = utils.getConfig()["notesFolderPath"]
 # path of the folder containing the blog posts
 blog_folder = utils.getConfig()["blogFolderPath"]
 postPostfix = utils.getConfig()["blogPostIdentifierPostfix"]
+contactInfo = utils.getConfig()["contactInfo"]
 
 
 # function to check if a file has valid front matter
@@ -27,23 +29,28 @@ def has_valid_frontmatter(file_path):
         return False
 
 
+def generateTitle(file_path):
+    title = file_path.split("/")[-1]
+    title = title.replace(".md", "").strip(" ")
+    title = title[0].upper() + title[1:]
+
+    return title
+
+
 # function to add front matter to a file
-def add_frontmatter(file_path, date=None, description="", tag=[""]):
+def add_frontmatter(file_path, date=None, description=""):
     filename = file_path.split("/")[-1]
     # get the current date
     yesterday = datetime.now() - timedelta(1)
     date = yesterday.strftime("%Y-%m-%d") if date is None else date
     # get the title from the file name
-    title = (
-        os.path.basename(file_path)
-        .replace(postPostfix, "")
-        .replace("-", " ")
-        .replace(".md", "")
-    )
-    title = title[0].upper() + title[1:]
-    articleurl = utils.getConfig()["blogUrl"] + "/" + title.replace(" ", "-")
 
-    post = frontmatter.loads("")
+    postObject = frontmatter.load(file_path)
+    hashtags = remove_hashtags(postObject.content)[1]
+
+    title = generateTitle(file_path)
+
+    articleurl = utils.getConfig()["blogUrl"] + "/" + title.replace(" ", "-")
 
     frontMatterObject = {
         "title": title,
@@ -54,20 +61,101 @@ def add_frontmatter(file_path, date=None, description="", tag=[""]):
         "author": utils.getConfig()["author"],
         "description": description,
         "articleUrl": articleurl,
-        "tag": tag,
+        "tag": hashtags,
     }
 
     for key, value in frontMatterObject.items():
-        post[key] = value
+        postObject[key] = value
 
-    # create front matter
-    frontMatterText = frontmatter.dumps(post)
-    # add front matter to the file
+    # save file
+    frontmatter.dump(postObject, file_path)
 
-    fileContents = frontmatter.load(file_path).content
 
-    with open(file_path, "w") as fileToEdit:
-        fileToEdit.write(frontMatterText + "\n\n" + fileContents)
+def formatPostContents(file_path, allFileNames):
+    post = frontmatter.load(file_path)
+    content = post.content
+
+    content = remove_link_only_lines(content)
+    content = convert_md_links(content, allFileNames)
+    content += "\n\n" + contactInfo
+    content = content.replace(postPostfix, "")
+    content = remove_hashtags(content)[0]
+
+    post.content = content
+    frontmatter.dump(post, file_path)
+
+
+def convert_md_links(md_string, allFileNames):
+    # Regex pattern to match the markdown links
+    pattern = r"\[\[(?P<filename>[^|\]]+)(?:\|(?P<linkText>[^]]+))?\]\]"
+
+    # Function to replace matched markdown links
+    def replace_func(match):
+        # Extract the filename and title from the matched object
+        filename = match.group("filename").split("/")[-1]  # Only take the file name
+        linkText = match.group("linkText") if match.group("linkText") else filename
+
+        linkText = linkText.replace(".md", "")
+        if filename + ".md" not in allFileNames:
+            return linkText
+
+        filename = "/" + generateTitle(filename).replace(" ", "-")
+        # Return the replacement link format
+        return f"[{linkText}]({filename})"
+
+    # Use re.sub to replace the markdown links
+    return re.sub(pattern, replace_func, md_string)
+
+
+def remove_link_only_lines(md_string):
+    # Regex pattern to match lines with only markdown links and whitespaces
+    pattern = r"^\s*(\[\[[^|\]]+\|?[^\]]*\]\]\s*)+$"
+
+    # Filter out lines that match the pattern
+    lines = md_string.split("\n")
+    filtered_lines = [
+        line
+        for line in lines
+        if not re.match(
+            pattern, line.replace(",", "").replace(".", "").replace("+", "")
+        )
+    ]
+
+    # Join and return the filtered lines
+    return "\n".join(filtered_lines)
+
+
+def find_files_containing_string(root_folder, target_string):
+    matching_files = []
+
+    # Walk through each directory
+    for dirpath, _, filenames in os.walk(root_folder):
+        for filename in filenames:
+            if filename.endswith(".md"):  # Check if it's a text file
+                filepath = os.path.join(dirpath, filename)
+                with open(filepath, "r", encoding="utf-8", errors="ignore") as file:
+                    # Read the file line-by-line and search for the target_string
+                    for line in file:
+                        if target_string in line:
+                            matching_files.append(filepath)
+                            break  # Exit once target_string is found to avoid redundant checking
+
+    return matching_files
+
+
+def remove_hashtags(md_string):
+    # Regular expression pattern to detect #hashtags
+    hashtag_pattern = r"#[\w-]+"
+
+    # Find all hashtags in the markdown string
+    hashtags = re.findall(hashtag_pattern, md_string)
+
+    # Remove all found hashtags from the markdown string
+    cleaned_md = re.sub(hashtag_pattern, "", md_string)
+
+    hashtags = [tag.strip("#") for tag in hashtags if tag != postPostfix]
+
+    return cleaned_md, hashtags
 
 
 def main():
@@ -75,20 +163,22 @@ def main():
     for f in files:
         os.remove(f)
     # find all files in the notes folder
-    for file_path in Path(notes_folder).rglob("*" + postPostfix + ".md"):
+    file_paths = find_files_containing_string(notes_folder, postPostfix)
+    allFileNames = [str(file_path).split("/")[-1] for file_path in file_paths]
+
+    for file_path in file_paths:
         file_path = str(file_path)
         filename = file_path.split("/")[-1]
         if has_valid_frontmatter(file_path):
             # extract the date from the front matter
             post = frontmatter.load(file_path)
             description = post["description"] if "description" in post else ""
-            tag = post["tag"] if "tag" in post else [""]
             date = (
                 datetime.strptime(post["date"], "%Y-%m-%d  %H:%M")
                 .date()
                 .strftime("%Y-%m-%d")
             )
-            add_frontmatter(file_path, date=date, description=description, tag=tag)
+            add_frontmatter(file_path, date=date, description=description)
         else:
             print("not valid frontmatter")
             # add front matter to the file
@@ -97,12 +187,13 @@ def main():
             date = yesterday.strftime("%Y-%m-%d")
         # copy the file to the blog folder with the new name
 
-        new_filename = "{}-{}".format(date, filename.replace(postPostfix, "")).replace(
-            " ", "-"
+        new_filename = (
+            "{}-{}".format(date, generateTitle(filename)).replace(" ", "-") + ".md"
         )
         new_file_path = os.path.join(blog_folder, new_filename)
         print("copied", file_path, "\nto", new_file_path, "\n\n")
         shutil.copy(file_path, new_file_path)
+        formatPostContents(new_file_path, allFileNames)
 
 
 if __name__ == "__main__":

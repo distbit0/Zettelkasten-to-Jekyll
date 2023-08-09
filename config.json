@@ -1,8 +1,9 @@
 {
     "blogFolderPath": "/home/pimania/Dev/distbit.xyz/_posts",
     "notesFolderPath": "/home/pimania/Syncs/Obsidian",
-    "blogPostIdentifierPostfix": " ghp",
+    "blogPostIdentifierPostfix": "#ghp",
     "author": "distbit",
     "blogUrl": "https://distbit.xyz",
-    "gitAutoPath": "/home/pimania/Dev/git-auto/git-auto"
+    "gitAutoPath": "/home/pimania/Dev/git-auto/git-auto",
+    "contactInfo": "If you found this interesting, have feedback or are working on something related, let's get in touch: [@0xdist](https://twitter.com/0xdist)"
 }
