@@ -38,7 +38,7 @@ def generateTitle(file_path):
 
 
 # function to add front matter to a file
-def add_frontmatter(file_path, date=None, description=""):
+def add_frontmatter(file_path, date=None, description="", articleUrl=""):
     filename = file_path.split("/")[-1]
     # get the current date
     yesterday = datetime.now() - timedelta(1)
@@ -50,7 +50,10 @@ def add_frontmatter(file_path, date=None, description=""):
 
     title = generateTitle(file_path)
 
-    articleurl = utils.getConfig()["blogUrl"] + "/" + title.replace(" ", "-")
+    if articleUrl == "":
+        articleUrl = (
+            utils.getConfig()["blogUrl"] + "/" + title.replace(" ", "-").lower()
+        )
 
     frontMatterObject = {
         "title": title,
@@ -60,7 +63,7 @@ def add_frontmatter(file_path, date=None, description=""):
         "category": "blog",
         "author": utils.getConfig()["author"],
         "description": description,
-        "articleUrl": articleurl,
+        "articleUrl": articleUrl,
         "tag": hashtags,
     }
 
@@ -99,7 +102,7 @@ def convert_md_links(md_string, allFileNames):
         if filename + ".md" not in allFileNames:
             return linkText
 
-        filename = "/" + generateTitle(filename).replace(" ", "-")
+        filename = "/" + generateTitle(filename).replace(" ", "-").lower()
         # Return the replacement link format
         return f"[{linkText}]({filename})"
 
@@ -173,12 +176,15 @@ def main():
             # extract the date from the front matter
             post = frontmatter.load(file_path)
             description = post["description"] if "description" in post else ""
+            articleUrl = post["articleUrl"] if "articleUrl" in post else ""
             date = (
                 datetime.strptime(post["date"], "%Y-%m-%d  %H:%M")
                 .date()
                 .strftime("%Y-%m-%d")
             )
-            add_frontmatter(file_path, date=date, description=description)
+            add_frontmatter(
+                file_path, date=date, description=description, articleUrl=articleUrl
+            )
         else:
             print("not valid frontmatter")
             # add front matter to the file
@@ -189,7 +195,7 @@ def main():
 
         new_filename = (
             "{}-{}".format(date, generateTitle(filename)).replace(" ", "-") + ".md"
-        )
+        ).lower()
         new_file_path = os.path.join(blog_folder, new_filename)
         print("copied", file_path, "\nto", new_file_path, "\n\n")
         shutil.copy(file_path, new_file_path)
