@@ -148,8 +148,9 @@ def find_files_containing_string(root_folder, target_string):
 
 def remove_hashtags(md_string):
     # Regular expression pattern to detect #hashtags
-    hashtag_pattern = r"#[\w-]+"
+    hashtag_pattern = r"\s(#[\w-]+)"
 
+    md_string = "\n" + md_string
     # Find all hashtags in the markdown string
     hashtags = re.findall(hashtag_pattern, md_string)
 
