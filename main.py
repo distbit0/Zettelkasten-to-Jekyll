@@ -161,6 +161,15 @@ def remove_hashtags(md_string):
     return cleaned_md, hashtags
 
 
+def generateBlogPostFileName(title, date):
+    title = title.replace(" ", "-")
+
+    fileName = date + "-" + generateTitle(title) + ".md"
+    fileName = fileName.lower()
+
+    return fileName
+
+
 def main():
     files = glob.glob(blog_folder + "/*")
     for f in files:
@@ -177,6 +186,7 @@ def main():
             post = frontmatter.load(file_path)
             description = post["description"] if "description" in post else ""
             articleUrl = post["articleUrl"] if "articleUrl" in post else ""
+            filename = articleUrl.split("/")[-1] if "articleUrl" in post else filename
             date = (
                 datetime.strptime(post["date"], "%Y-%m-%d  %H:%M")
                 .date()
@@ -193,10 +203,8 @@ def main():
             date = yesterday.strftime("%Y-%m-%d")
         # copy the file to the blog folder with the new name
 
-        new_filename = (
-            "{}-{}".format(date, generateTitle(filename)).replace(" ", "-") + ".md"
-        ).lower()
-        new_file_path = os.path.join(blog_folder, new_filename)
+        blogPostFileName = generateBlogPostFileName(filename, date)
+        new_file_path = os.path.join(blog_folder, blogPostFileName)
         print("copied", file_path, "\nto", new_file_path, "\n\n")
         shutil.copy(file_path, new_file_path)
         formatPostContents(new_file_path, allFileNames)
