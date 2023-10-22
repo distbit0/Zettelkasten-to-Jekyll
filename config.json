@@ -1,9 +1,9 @@
 {
-    "blogFolderPath": "/home/pimania/Dev/distbit.xyz/_posts",
-    "notesFolderPath": "/home/pimania/Syncs/Obsidian",
+    "blogFolderPath": "/home/pimania/dev/distbit.xyz/_posts",
+    "notesFolderPath": "/home/pimania/notes",
     "blogPostIdentifierPostfix": "#ghp",
     "author": "distbit",
     "blogUrl": "https://distbit.xyz",
-    "gitAutoPath": "/home/pimania/Dev/git-auto/git-auto",
+    "gitAutoPath": "/home/pimania/dev/git-auto/git-auto",
     "contactInfo": "If you found this interesting, have feedback or are working on something related, let's get in touch: [twitter (@0xdist)](https://twitter.com/0xdist) or [schedule a 30 min call](https://cal.com/distbit/30min)"
 }
