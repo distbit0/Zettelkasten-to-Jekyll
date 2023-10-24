@@ -215,4 +215,4 @@ if __name__ == "__main__":
     gitAutoPath = utils.getConfig()["gitAutoPath"]
     main()
     gitFolder = "/".join(blog_folder.split("/")[:-1])
-    os.system(gitAutoPath + " -d " + gitFolder + " -o -p")
+    os.system(gitAutoPath + " " + gitFolder)
