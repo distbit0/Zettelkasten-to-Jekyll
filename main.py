@@ -71,6 +71,10 @@ def add_frontmatter(file_path, date=None, description="", articleUrl=""):
         postObject[key] = value
 
     # save file
+    outputText = frontmatter.dumps(postObject)
+    currentText = open(file_path).read()
+    if currentText == outputText:
+        return
     frontmatter.dump(postObject, file_path)
 
 
