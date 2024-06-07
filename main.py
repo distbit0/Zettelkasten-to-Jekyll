@@ -87,7 +87,14 @@ def formatPostContents(file_path, allFileNames):
     content += "\n\n" + contactInfo
     content = content.replace(postPostfix, "")
     content = remove_hashtags(content)[0]
-
+    print(content)
+    contentWithDoubleSpaces = ""
+    for line in content.split("\n"):
+        contentWithDoubleSpaces += line
+        if not line.endswith("  ") and line.strip() != "":
+            contentWithDoubleSpaces += "  "  # markdown requires two spaces after a line for it to be recognised as such
+        contentWithDoubleSpaces += "\n"
+    content = str(contentWithDoubleSpaces)
     post.content = content
     frontmatter.dump(post, file_path)
 
