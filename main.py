@@ -87,7 +87,8 @@ def addNewLinesBeforeBlockQuoteReply(md_string):
         except:
             indent = 0
         if line.strip().startswith(">"):
-            if indent < indentOfLastLine:
+            lineNotBlank = line.strip().replace(">", "").strip() != ""
+            if indent < indentOfLastLine and lineNotBlank:
                 modified_md_string.append(">" * indent)
         modified_md_string.append(line)
         indentOfLastLine = indent
