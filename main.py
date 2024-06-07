@@ -79,6 +79,7 @@ def add_frontmatter(file_path, date=None, description="", articleUrl=""):
 
 
 def addNewLinesBeforeBlockQuoteReply(md_string):
+    # necessary to this for the reply to be displayed as a separate blockquote
     modified_md_string = []
     indentOfLastLine = 0
     for line in md_string.split("\n"):
