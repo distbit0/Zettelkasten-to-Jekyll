@@ -78,6 +78,23 @@ def add_frontmatter(file_path, date=None, description="", articleUrl=""):
     frontmatter.dump(postObject, file_path)
 
 
+def addNewLinesBeforeBlockQuoteReply(md_string):
+    modified_md_string = []
+    indentOfLastLine = 0
+    for line in md_string.split("\n"):
+        try:
+            indent = line.strip().split(" ")[0].count(">")
+        except:
+            indent = 0
+        if line.strip().startswith(">"):
+            if indent < indentOfLastLine:
+                modified_md_string.append(">" * indent)
+        modified_md_string.append(line)
+        indentOfLastLine = indent
+
+    return "\n".join(modified_md_string)
+
+
 def formatPostContents(file_path, allFileNames):
     post = frontmatter.load(file_path)
     content = post.content
@@ -87,7 +104,6 @@ def formatPostContents(file_path, allFileNames):
     content += "\n\n" + contactInfo
     content = content.replace(postPostfix, "")
     content = remove_hashtags(content)[0]
-    print(content)
     contentWithDoubleSpaces = ""
     for line in content.split("\n"):
         contentWithDoubleSpaces += line
@@ -95,6 +111,8 @@ def formatPostContents(file_path, allFileNames):
             contentWithDoubleSpaces += "  "  # markdown requires two spaces after a line for it to be recognised as such
         contentWithDoubleSpaces += "\n"
     content = str(contentWithDoubleSpaces)
+
+    content = addNewLinesBeforeBlockQuoteReply(content)
     post.content = content
     frontmatter.dump(post, file_path)
 
