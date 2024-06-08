@@ -7,6 +7,7 @@ from pathlib import Path
 import os
 import glob
 import re
+import invertBlockquotes
 
 
 # path of the folder containing the notes
@@ -113,7 +114,7 @@ def formatPostContents(file_path, allFileNames):
             contentWithDoubleSpaces += "  "  # markdown requires two spaces after a line for it to be recognised as such
         contentWithDoubleSpaces += "\n"
     content = str(contentWithDoubleSpaces)
-
+    content = invertBlockquotes.invertBlockquoteConvos(content)
     content = addNewLinesBeforeBlockQuoteReply(content)
     post.content = content
     frontmatter.dump(post, file_path)

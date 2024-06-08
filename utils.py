@@ -1,6 +1,7 @@
 import json
 from os import path
 
+
 def getAbsPath(relPath):
     basepath = path.dirname(__file__)
     fullPath = path.abspath(path.join(basepath, relPath))
