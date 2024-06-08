@@ -90,12 +90,14 @@ def convertOriginalToConvo(string):
                 min(currentParentsAtDepths.keys()) if currentParentsAtDepths else 0
             )
             parent = currentParentsAtDepths.get(lowestIndent, "")
-            if "#draft" not in message:
+            if "#draft" not in message and message:
                 convo.append({"parent": parent, "message": message})
             currentParentsAtDepths[lastLineDepth] = message
             message = [line]
 
         lastLineDepth = lineDepth
+    with open("convo.json", "w") as f:
+        json.dump(convo, f, indent=4)
     return convo
 
 
