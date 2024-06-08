@@ -36,7 +36,6 @@ def invertBlockquoteConvo(string):
     return string
 
 
-@pysnooper.snoop()
 def convertConvoToInverted(convo):
     def addMsgsToOutput(parent, msgs, depth, outputLines):
         for i in range(len(msgs)):
@@ -91,7 +90,8 @@ def convertOriginalToConvo(string):
                 min(currentParentsAtDepths.keys()) if currentParentsAtDepths else 0
             )
             parent = currentParentsAtDepths.get(lowestIndent, "")
-            convo.append({"parent": parent, "message": message})
+            if "#draft" not in message:
+                convo.append({"parent": parent, "message": message})
             currentParentsAtDepths[lastLineDepth] = message
             message = [line]
 
