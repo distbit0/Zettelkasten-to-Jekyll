@@ -99,7 +99,7 @@ def removeBlockquotes(string):
             if endOfBlockquote:
                 strippedWord += char
         line[0] = strippedWord
-        stringLines.append(" ".join(line).strip())
+        stringLines.append(" ".join(line))
     string = "\n".join(stringLines)
     return string
 
