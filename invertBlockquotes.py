@@ -3,10 +3,41 @@ import pysnooper
 import utils
 
 
+def isArticleMostlyConvo(string):
+    isMostlyConvo = False
+    lines = string.split("\n")
+    linesWithBlockquotes = [line for line in lines if line.startswith(">")]
+    if len(linesWithBlockquotes) > len(lines) / 2:
+        isMostlyConvo = True
+    return isMostlyConvo
+
+
+def getSingleConvoBlockquote(text):
+    lines = text.split("\n")
+    start_index = None
+    end_index = None
+
+    for i, line in enumerate(lines):
+        if line.startswith(">"):
+            if start_index is None:
+                start_index = i
+            end_index = i
+
+    if start_index is not None and end_index is not None:
+        return "\n".join(lines[start_index : end_index + 1]) + "\n"
+    else:
+        return ""
+
+
 def findBlockQuoteConvos(md_string):
     blockquotes = []
     currentBlockquote = ""
     depths = []
+    isMostlyConvo = isArticleMostlyConvo(md_string)
+    if isMostlyConvo:
+        return [
+            getSingleConvoBlockquote(md_string)
+        ]  # assume entire article is a single convo blockquote even if it contains top level replies with blockquotes
     for line in md_string.split("\n"):
         if line.startswith(">"):
             currentBlockquote += line + "\n"
@@ -99,7 +130,7 @@ def convertOriginalToConvo(string):
                     currentParentsAtDepths.pop(depth)
 
             lowestIndent = (
-                min(currentParentsAtDepths.keys()) if currentParentsAtDepths else 0
+                min(currentParentsAtDepths.keys()) if currentParentsAtDepths else -1
             )
             parent = currentParentsAtDepths.get(lowestIndent, "")
             if "#draft" not in message and message:
