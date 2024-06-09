@@ -51,7 +51,7 @@ def convertConvoToInverted(convo):
         return outputLines
 
     outputLines = addMsgsToOutput("", convo, 1, [])
-    outputText = "\n".join(outputLines)
+    outputText = "\n".join(outputLines) + "\n\n"
 
     return outputText
 
