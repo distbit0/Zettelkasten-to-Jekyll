@@ -14,7 +14,7 @@ def findBlockQuoteConvos(md_string):
             depths.append(depth)
         else:
             linesInBlockquote = len(currentBlockquote.strip().split("\n"))
-            if linesInBlockquote > 5 and len(set(depths)) >= 2:
+            if linesInBlockquote > 5 and len(set(depths)) >= 1:
                 blockquotes.append(currentBlockquote)
                 currentBlockquote = ""
     return blockquotes
