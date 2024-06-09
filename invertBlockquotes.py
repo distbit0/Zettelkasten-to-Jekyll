@@ -57,9 +57,19 @@ def convertConvoToInverted(convo):
 
 
 def removeBlockquotes(string):
-    string = string.split()
-    string[0] = string[0].replace(">", "")  # only remove blockquotes from first "word"
-    string = " ".join(string)
+    stringLines = []
+    for line in string.split("\n"):
+        line = line.split(" ")
+        strippedWord = ""
+        endOfBlockquote = False
+        for char in line[0]:
+            if char != ">":
+                endOfBlockquote = True
+            if endOfBlockquote:
+                strippedWord += char
+        line[0] = strippedWord
+        stringLines.append(" ".join(line).strip())
+    string = "\n".join(stringLines)
     return string
 
 
