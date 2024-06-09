@@ -10,14 +10,6 @@ import re
 import invertBlockquotes
 
 
-# path of the folder containing the notes
-notes_folder = utils.getConfig()["notesFolderPath"]
-# path of the folder containing the blog posts
-blog_folder = utils.getConfig()["blogFolderPath"]
-postPostfix = utils.getConfig()["blogPostIdentifierPostfix"]
-contactInfo = utils.getConfig()["contactInfo"]
-
-
 # function to check if a file has valid front matter
 def has_valid_frontmatter(file_path):
     try:
@@ -39,7 +31,7 @@ def generateTitle(file_path):
 
 
 # function to add front matter to a file
-def add_frontmatter(file_path, date=None, description="", articleUrl=""):
+def add_frontmatter(file_path, date=None, description="", articleUrl="", isHidden=True):
     filename = file_path.split("/")[-1]
     # get the current date
     yesterday = datetime.now() - timedelta(1)
@@ -55,13 +47,13 @@ def add_frontmatter(file_path, date=None, description="", articleUrl=""):
         articleUrl = (
             utils.getConfig()["blogUrl"] + "/" + title.replace(" ", "-").lower()
         )
-
+    category = "blog" if not isHidden else ""
     frontMatterObject = {
         "title": title,
         "layout": "post",
         "date": date + " 00:00",
         "headerImage": False,
-        "category": "blog",
+        "category": category,
         "author": utils.getConfig()["author"],
         "description": description,
         "articleUrl": articleUrl,
@@ -106,6 +98,7 @@ def formatPostContents(file_path, allFileNames):
     content = convert_md_links(content, allFileNames)
     content += "\n\n" + contactInfo
     content = content.replace(postPostfix, "")
+    content = content.replace(hiddenPostPostfix, "")
     content = remove_hashtags(content)[0]
     contentWithDoubleSpaces = ""
     for line in content.split("\n"):
@@ -189,7 +182,11 @@ def remove_hashtags(md_string):
     # Remove all found hashtags from the markdown string
     cleaned_md = re.sub(hashtag_pattern, "", md_string)
 
-    hashtags = [tag.strip("#") for tag in hashtags if tag != postPostfix]
+    hashtags = [
+        tag.strip("#")
+        for tag in hashtags
+        if tag != postPostfix and tag != hiddenPostPostfix
+    ]
 
     return cleaned_md, hashtags
 
@@ -208,11 +205,14 @@ def main():
     for f in files:
         os.remove(f)
     # find all files in the notes folder
-    file_paths = find_files_containing_string(notes_folder, postPostfix)
-    allFileNames = [str(file_path).split("/")[-1] for file_path in file_paths]
+    publishedFilePaths = find_files_containing_string(notes_folder, postPostfix)
+    hiddenFilePaths = find_files_containing_string(notes_folder, hiddenPostPostfix)
+    allPaths = publishedFilePaths + hiddenFilePaths
+    allFileNames = [str(file_path).split("/")[-1] for file_path in allPaths]
 
-    for file_path in file_paths:
+    for file_path in allPaths:
         file_path = str(file_path)
+        isHidden = file_path in hiddenFilePaths
         filename = file_path.split("/")[-1]
         if has_valid_frontmatter(file_path):
             # extract the date from the front matter
@@ -226,12 +226,16 @@ def main():
                 .strftime("%Y-%m-%d")
             )
             add_frontmatter(
-                file_path, date=date, description=description, articleUrl=articleUrl
+                file_path,
+                date=date,
+                description=description,
+                articleUrl=articleUrl,
+                isHidden=isHidden,
             )
         else:
             print("not valid frontmatter")
             # add front matter to the file
-            add_frontmatter(file_path)
+            add_frontmatter(file_path, isHidden=isHidden)
             yesterday = datetime.now() - timedelta(1)
             date = yesterday.strftime("%Y-%m-%d")
         # copy the file to the blog folder with the new name
@@ -244,6 +248,13 @@ def main():
 
 
 if __name__ == "__main__":
+    # path of the folder containing the notes
+    notes_folder = utils.getConfig()["notesFolderPath"]
+    # path of the folder containing the blog posts
+    blog_folder = utils.getConfig()["blogFolderPath"]
+    postPostfix = utils.getConfig()["blogPostIdentifierPostfix"]
+    hiddenPostPostfix = utils.getConfig()["hiddenPostPostfix"]
+    contactInfo = utils.getConfig()["contactInfo"]
     gitAutoPath = utils.getConfig()["gitAutoPath"]
     main()
     gitFolder = "/".join(blog_folder.split("/")[:-1])

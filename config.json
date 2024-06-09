@@ -2,6 +2,7 @@
     "blogFolderPath": "/home/pimania/dev/distbit.xyz/_posts",
     "notesFolderPath": "/home/pimania/notes",
     "blogPostIdentifierPostfix": "#ghp",
+    "hiddenPostPostfix": "#hbp",
     "author": "distbit",
     "blogUrl": "https://distbit.xyz",
     "gitAutoPath": "python3 /home/pimania/dev/git-auto/gitAutoCommit.py -p",
