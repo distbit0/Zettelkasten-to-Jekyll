@@ -45,7 +45,6 @@ def convertConvoToInverted(convo):
                     "\n", "\n" + ">" * depth
                 )
                 outputLines.append(msgText)
-                print(msgText)
                 outputLines = addMsgsToOutput(
                     message["message"], msgs[i + 1 :], depth + 1, outputLines
                 )
