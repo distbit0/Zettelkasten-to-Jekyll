@@ -202,14 +202,13 @@ def generateBlogPostFileName(title, date):
 
 def main():
     files = glob.glob(blog_folder + "/*")
-    for f in files:
-        os.remove(f)
     # find all files in the notes folder
     publishedFilePaths = find_files_containing_string(notes_folder, postPostfix)
     hiddenFilePaths = find_files_containing_string(notes_folder, hiddenPostPostfix)
     allPaths = publishedFilePaths + hiddenFilePaths
     allFileNames = [str(file_path).split("/")[-1] for file_path in allPaths]
 
+    updatedBlogPostFiles = []
     for file_path in allPaths:
         file_path = str(file_path)
         isHidden = file_path in hiddenFilePaths
@@ -242,9 +241,15 @@ def main():
 
         blogPostFileName = generateBlogPostFileName(filename, date)
         new_file_path = os.path.join(blog_folder, blogPostFileName)
+        updatedBlogPostFiles.append(new_file_path)
         print("copied", file_path, "\nto", new_file_path, "\n\n")
         shutil.copy(file_path, new_file_path)
         formatPostContents(new_file_path, allFileNames)
+
+    for f in files:
+        if f not in updatedBlogPostFiles:
+            print("removing", f)
+            os.remove(f)
 
 
 if __name__ == "__main__":
