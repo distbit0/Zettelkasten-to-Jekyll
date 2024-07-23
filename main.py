@@ -18,7 +18,7 @@ def has_valid_frontmatter(file_path):
             return True
         else:
             return False
-    except frontmatter.exceptions.FrontMatterError:
+    except:
         return False
 
 
