@@ -90,10 +90,36 @@ def addNewLinesBeforeBlockQuoteReply(md_string):
     return "\n".join(modified_md_string)
 
 
+def handle_scratchpad(source_file_path):
+    """Add SCRATCHPAD heading to source file if it doesn't exist"""
+    scratchpad_marker = "# -- SCRATCHPAD"
+    
+    with open(source_file_path, 'r', encoding='utf-8', errors='ignore') as file:
+        content = file.read()
+    
+    if scratchpad_marker not in content:
+        # Add the marker to the end of the file
+        with open(source_file_path, 'a', encoding='utf-8') as file:
+            file.write(f"\n\n{scratchpad_marker}\n")
+
+def remove_scratchpad_content(content):
+    """Remove content after the SCRATCHPAD marker"""
+    scratchpad_marker = "# -- SCRATCHPAD"
+    
+    if scratchpad_marker in content:
+        # Split at the marker and only keep the content before it
+        parts = content.split(scratchpad_marker, 1)
+        return parts[0].rstrip()
+    
+    return content
+
 def formatPostContents(file_path, allFileNames):
     post = frontmatter.load(file_path)
     content = post.content
-
+    
+    # Remove any scratchpad content
+    content = remove_scratchpad_content(content)
+    
     content = remove_link_only_lines(content)
     content = convert_md_links(content, allFileNames)
     content += "\n\n" + contactInfo
@@ -244,6 +270,10 @@ def main():
         updatedBlogPostFiles.append(new_file_path)
         print("copied", file_path, "\nto", new_file_path, "\n\n")
         shutil.copy(file_path, new_file_path)
+        # Check and add the SCRATCHPAD marker to the source file if it doesn't exist
+        handle_scratchpad(file_path)
+        
+        # Format the content for the blog post (with SCRATCHPAD content removed)
         formatPostContents(new_file_path, allFileNames)
 
     for f in files:
