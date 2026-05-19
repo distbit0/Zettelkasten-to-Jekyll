@@ -146,6 +146,6 @@ def convertOriginalToConvo(string):
 
 if __name__ == "__main__":
     md_string = open(
-        "/home/pimania/notes/Work/ProdTools/example blockquote convo.md"
+        "/home/pimania/notes/Work/ProdTools/example-blockquote-convo.md"
     ).read()
     print(invertBlockquoteConvos(md_string))

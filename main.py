@@ -10,6 +10,23 @@ import re
 import invertBlockquotes
 
 
+def note_slug(value):
+    stem = Path(value).name
+    if stem.lower().endswith(".md"):
+        stem = stem[:-3]
+
+    slug_chars = []
+    previous_was_separator = False
+    for character in stem.lower():
+        if character.isalnum():
+            slug_chars.append(character)
+            previous_was_separator = False
+        elif not previous_was_separator:
+            slug_chars.append("-")
+            previous_was_separator = True
+    return "".join(slug_chars).strip("-")
+
+
 # function to check if a file has valid front matter
 def has_valid_frontmatter(file_path):
     try:
@@ -23,9 +40,9 @@ def has_valid_frontmatter(file_path):
 
 
 def generateTitle(file_path):
-    title = file_path.split("/")[-1]
-    title = title.replace(".md", "").strip(" ")
-    title = title[0].upper() + title[1:]
+    title = Path(file_path).stem.strip()
+    title = re.sub(r"[-_]+", " ", title)
+    title = title[0].upper() + title[1:] if title else ""
 
     return title
 
@@ -142,6 +159,7 @@ def formatPostContents(file_path, allFileNames):
 def convert_md_links(md_string, allFileNames):
     # Regex pattern to match the markdown links
     pattern = r"\[\[(?P<filename>[^|\]]+)(?:\|(?P<linkText>[^]]+))?\]\]"
+    note_keys = {note_slug(file_name) for file_name in allFileNames}
 
     # Function to replace matched markdown links
     def replace_func(match):
@@ -150,10 +168,11 @@ def convert_md_links(md_string, allFileNames):
         linkText = match.group("linkText") if match.group("linkText") else filename
 
         linkText = linkText.replace(".md", "")
-        if filename + ".md" not in allFileNames:
+        target_slug = note_slug(filename)
+        if target_slug not in note_keys:
             return linkText
 
-        filename = "/" + generateTitle(filename).replace(" ", "-").lower()
+        filename = "/" + target_slug
         # Return the replacement link format
         return f"[{linkText}]({filename})"
 
@@ -218,10 +237,7 @@ def remove_hashtags(md_string):
 
 
 def generateBlogPostFileName(title, date):
-    title = title.replace(" ", "-")
-
-    fileName = date + "-" + generateTitle(title) + ".md"
-    fileName = fileName.lower()
+    fileName = date + "-" + note_slug(title) + ".md"
 
     return fileName
 
