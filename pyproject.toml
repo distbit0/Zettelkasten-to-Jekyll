@@ -3,7 +3,7 @@ name = "autoBlogPost"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "distbit", email = "adp01@pm.me"},
+    {name = "distbit", email = "me@distbit.xyz"},
 ]
 dependencies = [
     "python-dotenv",
